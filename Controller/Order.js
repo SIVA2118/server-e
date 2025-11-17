@@ -1,5 +1,5 @@
 import Order from "../Models/Order.js";
-import OrderItem from "../Models/OrderItem.js";
+import OrderItem from "../Models/Orderitem.js";
 import Payment from "../Models/Payment.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../Utils/sendemail.js";
