@@ -9,7 +9,7 @@ const app = express();
 import userRoutes from './Routes/User.js';
 import adminRoutes from './Routes/Admin.js';  
 import addressRoutes from './Routes/Address.js';
-import cartRoutes from './Routes/CartItem.js';
+import cartRoutes from './Routes/Cartitem.js';
 import categoryRoutes from './Routes/Category.js';
 import productRoutes from './Routes/Product.js';
 import wishListRoutes from './Routes/Wishlist.js';
