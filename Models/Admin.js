@@ -25,7 +25,7 @@ const adminSchema = new mongoose.Schema(
 
     status:{
     type: String,
-    enum: ["Active", "Inactive"],
+    enum: ["Active", "Inactive","Deleted"],
     default: "Active",
   },
   },
@@ -34,3 +34,4 @@ const adminSchema = new mongoose.Schema(
 );
 
 export default mongoose.model("Admin", adminSchema);
+
