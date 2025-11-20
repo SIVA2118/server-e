@@ -269,7 +269,7 @@ export const deleteAdmin = async (req, res) => {
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
     // Instead of deleting, mark as inactive
-    admin.status = "Inactive";
+    admin.status = "Deleted";
     await admin.save();
 
     res.status(200).json({ message: "Admin marked as Inactive successfully" });
@@ -277,4 +277,5 @@ export const deleteAdmin = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
