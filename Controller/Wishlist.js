@@ -1,5 +1,5 @@
 import Wishlist from "../Models/Wishlist.js";
-import Product from "../Models/Product.js";
+import Mobile from "../Models/Mobile.js";
 
 // Add to Wishlist
 export const addToWishlist = async (req, res) => {
