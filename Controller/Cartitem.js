@@ -1,5 +1,5 @@
 import CartItem from "../Models/Cartitem.js";
-import Mobile from "../Models/Mobile.js";
+import Product from "../Models/Product.js";
 import mongoose from "mongoose";
 
 

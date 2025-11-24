@@ -200,7 +200,6 @@ export const getAdminById = async (req, res) => {
   }
 };
 
-// ---------------- Update Admin (Super Admin only) ----------------
 // ---------------- Update Admin (Super Admin + Admin) ----------------
 export const updateAdmin = async (req, res) => {
   try {
@@ -269,7 +268,7 @@ export const deleteAdmin = async (req, res) => {
     if (!admin) return res.status(404).json({ message: "Admin not found" });
 
     // Instead of deleting, mark as inactive
-    admin.status = "Inactive";
+    admin.status = "Delete";
     await admin.save();
 
     res.status(200).json({ message: "Admin marked as Inactive successfully" });

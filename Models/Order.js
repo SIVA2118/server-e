@@ -21,9 +21,27 @@ const orderSchema = new mongoose.Schema(
     ],
     status: { 
       type: String, 
-      enum: ["pending", "confirmed", "shipped", "delivered", "cancelled", "returned", "refunded"], 
+      enum: [
+        "pending",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "returned",
+        "refunded"
+      ], 
       default: "pending" 
     },
+
+    // 🚚 Add Shipment Fields
+    shipmentStatus: { 
+      type: String, 
+      enum: ["pending", "packed", "shipped", "out-for-delivery", "delivered"],
+      default: "pending"
+    },
+    courierName: { type: String },
+    expectedDelivery: { type: Date },
+
     offer: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: "Offer" 

@@ -310,29 +310,41 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
-// Delete user by id (normal or admin)
-// ---------------- Soft Delete User by id ----------------
+// ---------------- Hard Delete User (Only Super Admin or Same User) ----------------
 export const deleteUserProfile = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userIdToDelete = req.params.id;        // ID of the account to delete
+    const loggedInUserId = req.user.id;          // Logged in user ID
+    const loggedInUserRole = req.user.role;      // Logged in user role
 
-    // If normal user, ensure they can only deactivate their own account
-    if (req.user.role === "user" && req.user.id !== userId) {
-      return res.status(403).json({ message: "You are not allowed to deactivate this user" });
+    // 🔐 Permission Check
+    if (loggedInUserRole !== "super admin" && loggedInUserId !== userIdToDelete) {
+      return res.status(403).json({
+        message: "Access denied: Only Super Admin or the same user can delete this account"
+      });
     }
 
-    const user = await User.findById(userId);
+    // 🔎 Check User Exists
+    const user = await User.findById(userIdToDelete);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Soft delete: mark as inactive
-    user.status = "Inactive";
-    await user.save();
+    // 📌 Store previous status
+    const previousStatus = user.status || "Active";
 
-    res.json({ message: "User marked as Inactive successfully" });
+    // 🗑 Hard Delete User
+    await User.findByIdAndDelete(userIdToDelete);
+
+    res.json({
+      success: true,
+      message: "User account deleted permanently",
+      deletedUserStatus: previousStatus  // << Return status
+    });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 

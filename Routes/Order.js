@@ -1,26 +1,35 @@
 import express from "express";
 import {
   createOrder, getOrderById, updateOrder, deleteOrder, getAllOrders,
-  confirmOrderPayment, refundOrderPayment
+  confirmOrderPayment, refundOrderPayment, updateShipment
 } from "../Controller/Order.js";
 import { Auth, authorizeRoles } from "../Middleware/Auth.js";
 
 const router = express.Router();
 
+// 🆕 Create Order
 router.post("/create", Auth, createOrder);
 
-// ✅ Get all orders with filters, pagination, search (admin can see all, users see their own)
+// 📌 Get all (Admin can see all, User only their own)
 router.get("/all", Auth, getAllOrders);
+
+// 📌 Get by ID
 router.get("/byId/:id", Auth, getOrderById);
+
+// ✏ Update Order by ID
 router.put("/update/:id", Auth, updateOrder);
+
+// ❌ Delete Order by ID
 router.delete("/delete/:id", Auth, deleteOrder);
 
+// 💳 Confirm Payment + Invoice Email
 router.post("/confirm/:id", Auth, async (req, res) => {
   const result = await confirmOrderPayment(req.params.id);
   if (result.success) return res.json(result);
   res.status(500).json(result);
 });
 
+// 💵 Refund Payment + Email
 router.post("/refund/:id", Auth, async (req, res) => {
   const { amount } = req.body;
   const result = await refundOrderPayment(req.params.id, amount);
@@ -28,13 +37,13 @@ router.post("/refund/:id", Auth, async (req, res) => {
   res.status(500).json(result);
 });
 
-// ✅ Get a specific order by ID (authenticated users)
-router.get("/:id", Auth, getOrderById);
+// 🚚 Update Shipment (Admin Only)
+router.put(
+  "/shipment/:id",
+  Auth,
+  authorizeRoles("admin", "super admin"),
+  updateShipment
+);
 
-// ✅ Update an order by ID (admin only)
-router.put("/:id", Auth, updateOrder);
-
-// ✅ Delete an order by ID 
-router.delete("/:id", Auth,  deleteOrder);
 
 export default router;
