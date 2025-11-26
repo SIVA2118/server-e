@@ -295,7 +295,7 @@ export const confirmOrderPayment = async (orderId) => {
 // 🚚 Manually Update Shipment Details
 export const updateShipment = async (req, res) => {
   try {
-    const { status, trackingNumber, courierName, expectedDelivery } = req.body;
+    const { status, trackingNumber, courierName, expectedDelivery,deliveryDate } = req.body;
 
     // Validate
     if (!req.params.id)
@@ -316,36 +316,37 @@ export const updateShipment = async (req, res) => {
     if (status) order.shipmentStatus = status;
     if (trackingNumber) order.trackingNumber = trackingNumber;
     if (courierName) order.courierName = courierName;
+    if (deliveryDate) order.deliveryDate=deliveryDate;
     if (expectedDelivery) order.expectedDelivery = expectedDelivery;
 
     await order.save();
 
-    // ✅ Prepare user data safely
-    const userFirst = order.user.firstName || "Customer";
-    const userLast = order.user.lastName || "";
-    const userName = `${userFirst} ${userLast}`.trim();
+    // 🧾 Create user name safely (avoid crash)
+const userFirst = order.user?.firstName || "Customer";
+const userLast = order.user?.lastName || "";
+const userName = `${userFirst} ${userLast}`.trim();
 
-
-  // 📧 Notify user if email exists
-    if (order.user?.email) {
+// 📧 Notify user only if email exists
+if (order.user && order.user.email) {
   const subject = `📦 Shipment Update — Order #${order._id}`;
-
-  const text = `Dear Customer, your shipment status has been updated to ${status}.`;
+  const text = `Dear ${userName}, your shipment status has been updated to ${status}.`;
 
   const html = `
     <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #333;">
       <h2 style="color:#0D6EFD; margin-bottom: 10px;">📦 Shipment Update</h2>
       
       <p style="font-size: 15px;">
-        Hello <b>${userName || "Customer"}</b>,<br>
+        Hello <b>${userName}</b>,<br>
         We’d like to inform you that the shipment status of your order has been updated.
       </p>
 
       <div style="background: #F4F6FA; padding: 12px 15px; border-radius: 6px; margin-top: 10px; font-size: 14px;">
         <p style="margin:5px 0;"><strong>🆔 Order ID:</strong> ${order._id}</p>
-        <p style="margin:5px 0;"><strong>📌 Current Status:</strong> ${status || "N/A"}</p>
+        <p style="margin:5px 0;"><strong>📌 Current Status:</strong> ${status}</p>
+        ${trackingNumber ? `<p style="margin:5px 0;"><strong>🔢 Tracking Number:</strong> ${trackingNumber}</p>` : ""}
         ${courierName ? `<p style="margin:5px 0;"><strong>🚚 Courier:</strong> ${courierName}</p>` : ""}
-        ${expectedDelivery ? `<p style="margin:5px 0;"><strong>📅 Expected Delivery:</strong> ${expectedDelivery}</p>` : ""}
+        ${expectedDelivery ? `<p style="margin:5px 0;"><strong>📅 Expected Delivery:</strong> ${new Date(expectedDelivery).toLocaleDateString()}</p>` : ""}
+        ${deliveryDate ? `<p style="margin:5px 0;"><strong>📦 Delivered On:</strong> ${new Date(deliveryDate).toLocaleDateString()}</p>` : ""}
       </div>
 
       <p style="margin-top: 15px; font-size: 14px;">
@@ -361,6 +362,7 @@ export const updateShipment = async (req, res) => {
 
   await sendEmail(order.user.email, subject, text, html);
 }
+
 
     res.json({
       success: true,

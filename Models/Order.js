@@ -41,6 +41,7 @@ const orderSchema = new mongoose.Schema(
     },
     courierName: { type: String },
     expectedDelivery: { type: Date },
+    deliveryDate: { type: Date },
 
     offer: { 
       type: mongoose.Schema.Types.ObjectId, 
