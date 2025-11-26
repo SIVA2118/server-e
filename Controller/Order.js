@@ -295,7 +295,7 @@ export const confirmOrderPayment = async (orderId) => {
 // 🚚 Manually Update Shipment Details
 export const updateShipment = async (req, res) => {
   try {
-    const { status, trackingNumber, courierName, expectedDelivery,deliveryDate } = req.body;
+    const { status, trackingNumber, courierName, expectedDelivery } = req.body;
 
     // Validate
     if (!req.params.id)
@@ -309,60 +309,66 @@ export const updateShipment = async (req, res) => {
 
     // 🔐 Only admin can update shipment details
     if (!req.user || !["admin", "super admin"].includes(req.user.role)) {
-  return res.status(403).json({ message: "Only admin or super-admin can update shipment" });
-}
+      return res.status(403).json({ message: "Only admin or super-admin can update shipment" });
+    }
 
-    // 📝 Update shipment fields safely
-    if (status) order.shipmentStatus = status;
-    if (trackingNumber) order.trackingNumber = trackingNumber;
+    // 📝 Update shipment fields safely + store update date
+    if (status) {
+      order.shipmentStatus = status;
+      order.shipmentUpdatedAt = new Date(); // ⏱ Save update time
+    }
+
+    // 📌 Automatically set delivered date when status becomes "delivered"
+    if (status === "delivered") {
+      order.deliveredAt = new Date();
+    }
+
     if (courierName) order.courierName = courierName;
-    if (deliveryDate) order.deliveryDate=deliveryDate;
     if (expectedDelivery) order.expectedDelivery = expectedDelivery;
 
     await order.save();
 
-    // 🧾 Create user name safely (avoid crash)
-const userFirst = order.user?.firstName || "Customer";
-const userLast = order.user?.lastName || "";
-const userName = `${userFirst} ${userLast}`.trim();
+    // 🧾 Create user name safely
+    const userFirst = order.user?.firstName || "Customer";
+    const userLast = order.user?.lastName || "";
+    const userName = `${userFirst} ${userLast}`.trim();
 
-// 📧 Notify user only if email exists
-if (order.user && order.user.email) {
-  const subject = `📦 Shipment Update — Order #${order._id}`;
-  const text = `Dear ${userName}, your shipment status has been updated to ${status}.`;
+    // 📧 Notify user only if email exists
+    if (order.user && order.user.email) {
+      const subject = `📦 Shipment Update — Order #${order._id}`;
+      const text = `Dear ${userName}, your shipment status has been updated to ${status}.`;
 
-  const html = `
-    <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #333;">
-      <h2 style="color:#0D6EFD; margin-bottom: 10px;">📦 Shipment Update</h2>
-      
-      <p style="font-size: 15px;">
-        Hello <b>${userName}</b>,<br>
-        We’d like to inform you that the shipment status of your order has been updated.
-      </p>
+      const html = `
+        <div style="font-family: Arial, Helvetica, sans-serif; padding: 20px; color: #333;">
+          <h2 style="color:#0D6EFD; margin-bottom: 10px;">📦 Shipment Update</h2>
+          
+          <p style="font-size: 15px;">
+            Hello <b>${userName}</b>,<br>
+            We’d like to inform you that the shipment status of your order has been updated.
+          </p>
 
-      <div style="background: #F4F6FA; padding: 12px 15px; border-radius: 6px; margin-top: 10px; font-size: 14px;">
-        <p style="margin:5px 0;"><strong>🆔 Order ID:</strong> ${order._id}</p>
-        <p style="margin:5px 0;"><strong>📌 Current Status:</strong> ${status}</p>
-        ${trackingNumber ? `<p style="margin:5px 0;"><strong>🔢 Tracking Number:</strong> ${trackingNumber}</p>` : ""}
-        ${courierName ? `<p style="margin:5px 0;"><strong>🚚 Courier:</strong> ${courierName}</p>` : ""}
-        ${expectedDelivery ? `<p style="margin:5px 0;"><strong>📅 Expected Delivery:</strong> ${new Date(expectedDelivery).toLocaleDateString()}</p>` : ""}
-        ${deliveryDate ? `<p style="margin:5px 0;"><strong>📦 Delivered On:</strong> ${new Date(deliveryDate).toLocaleDateString()}</p>` : ""}
-      </div>
+          <div style="background: #F4F6FA; padding: 12px 15px; border-radius: 6px; margin-top: 10px; font-size: 14px;">
+            <p style="margin:5px 0;"><strong>🆔 Order ID:</strong> ${order._id}</p>
+            <p style="margin:5px 0;"><strong>📌 Current Status:</strong> ${status}</p>
+            ${courierName ? `<p style="margin:5px 0;"><strong>🚚 Courier:</strong> ${courierName}</p>` : ""}
+            ${expectedDelivery ? `<p style="margin:5px 0;"><strong>📅 Expected Delivery:</strong> ${new Date(expectedDelivery).toLocaleDateString()}</p>` : ""}
+            ${order.shipmentUpdatedAt ? `<p style="margin:5px 0;"><strong>⏱ Updated On:</strong> ${new Date(order.shipmentUpdatedAt).toLocaleString()}</p>` : ""}
+            ${order.deliveredAt ? `<p style="margin:5px 0;"><strong>🎉 Delivered On:</strong> ${new Date(order.deliveredAt).toLocaleDateString()}</p>` : ""}
+          </div>
 
-      <p style="margin-top: 15px; font-size: 14px;">
-        You can track your shipment using the tracking details provided.
-      </p>
+          <p style="margin-top: 15px; font-size: 14px;">
+            You can track your shipment using the tracking details provided.
+          </p>
 
-      <p style="margin-top: 20px; font-size: 13px; color:#555;">
-        Thank you for shopping with us! 😊<br>
-        <b style="color:#0D6EFD;">Your Store Team</b>
-      </p>
-    </div>
-  `;
+          <p style="margin-top: 20px; font-size: 13px; color:#555;">
+            Thank you for shopping with us! 😊<br>
+            <b style="color:#0D6EFD;">Your Store Team</b>
+          </p>
+        </div>
+      `;
 
-  await sendEmail(order.user.email, subject, text, html);
-}
-
+      await sendEmail(order.user.email, subject, text, html);
+    }
 
     res.json({
       success: true,
@@ -375,6 +381,7 @@ if (order.user && order.user.email) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 // ✅ Refund order payment and send email

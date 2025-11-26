@@ -35,13 +35,14 @@ const orderSchema = new mongoose.Schema(
 
     // 🚚 Add Shipment Fields
     shipmentStatus: { 
-      type: String, 
-      enum: ["pending", "packed", "shipped", "out-for-delivery", "delivered"],
-      default: "pending"
-    },
-    courierName: { type: String },
-    expectedDelivery: { type: Date },
-    deliveryDate: { type: Date },
+  type: String, 
+  enum: ["pending", "packed", "shipped", "out-for-delivery", "delivered"],
+  default: "pending"
+},
+courierName: { type: String },
+expectedDelivery: { type: Date },
+
+shipmentUpdatedAt: { type: Date }, // ⬅️ New field
 
     offer: { 
       type: mongoose.Schema.Types.ObjectId, 
