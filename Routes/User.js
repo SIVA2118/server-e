@@ -23,7 +23,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
+router.post("/#/reset-password/:token", resetPassword);
 
 // ---------- Admin Routes ----------
 router.get("/all", Auth, authorizeRoles("admin", "super admin"), getAllUsers);
