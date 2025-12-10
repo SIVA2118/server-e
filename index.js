@@ -60,7 +60,6 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/order-items", orderItemRoutes);
 app.use("/api/offers", offerRoutes);
 app.use("/api/orders", orderRoutes);
-app.post("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/carousel", carouselRoutes);
