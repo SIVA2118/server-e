@@ -257,7 +257,6 @@ export const updateAdmin = async (req, res) => {
 };
 
 // ---------------- Delete Admin (Super Admin only) ----------------
-// ---------------- Delete Admin (Super Admin only) ----------------
 export const deleteAdmin = async (req, res) => {
   try {
     if (req.user.id === req.params.id) {
@@ -265,15 +264,17 @@ export const deleteAdmin = async (req, res) => {
     }
 
     const admin = await Admin.findById(req.params.id);
-    if (!admin) return res.status(404).json({ message: "Admin not found" });
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
 
-    // Instead of deleting, mark as inactive
-    admin.status = "Delete";
-    await admin.save();
+    // ❗ Completely delete from MongoDB
+    await Admin.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({ message: "Admin marked as Inactive successfully" });
+    res.status(200).json({ message: "Admin deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
