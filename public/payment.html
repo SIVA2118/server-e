@@ -11,7 +11,7 @@
 
   <script>
     // Replace with your real values
-    const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MjZhZDI1Y2Y1ZDA2NWI3YWY0MjA4MCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY0MTQzMjc4LCJleHAiOjE3NjQyMjk2Nzh9.I3rCnBG8JerJil1UWLzBl9qr15Iz0hi0P_MBTAa9pnw";      // JWT from login
+    const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MmZlY2Y0ZTc0Nzk5ZjMyNGI4M2MxYyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY1MzQ0ODk2LCJleHAiOjE3NjU0MzEyOTZ9.pjCQpTFha8ixxuFAxj8ykOAPXCYruvk12x7H7uSIV7M";      // JWT from login
     const ORDER_ID = "6926b084cf5d065b7af4208b";  // Order _id from DB
 
     document.getElementById("payButton").onclick = async function () {
@@ -38,7 +38,7 @@
 
         // 2️⃣ Open Razorpay checkout
         const options = {
-          key: "rzp_test_RNjlc0vHMbznn4", // Razorpay Key ID
+          key: "rzp_live_RkHoyrDIxMYgwt", // Razorpay Key ID
           amount: data.payment.amount * 100, // in paise
           currency: "INR",
           name: "Your Store",

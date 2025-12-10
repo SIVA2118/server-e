@@ -25,6 +25,20 @@ export const generateInvoicePDF = async (order) => {
     const soft = "#5a189a";
     const text = "#111111";
 
+    // ---------------- LOGO (TOP CENTER) ----------------
+    const logoPath = path.join(__dirname, "assets", "images", "LABEL AADVI-10.png");
+    if (fs.existsSync(logoPath)) {
+      const logoWidth = 100;
+      const pageWidth = doc.page.width;
+      const x = (pageWidth - logoWidth) / 2;
+
+      doc.image(logoPath, x, 20, { width: logoWidth });
+      doc.moveDown(4); // spacing after logo
+    } else {
+      console.log("Logo not found at:", logoPath);
+    }
+
+
     // ---------------- HEADER ----------------
     doc.fillColor(soft).fontSize(28).text("LABEL AADVI", { align: "center" });
 
@@ -115,14 +129,14 @@ export const generateInvoicePDF = async (order) => {
     doc.font("Helvetica").fillColor("#111");
 
     order.orderItems.forEach((item, index) => {
-      const name = item.product?.name || "Unknown Product";
+      const productName = item.product?.name || "Unknown Product";
       const price = item.price || 0;
       const qty = item.quantity || 1;
       const total = price * qty;
       subtotal += total;
 
       doc.text(String(index + 1), col0, rowY)
-        .text(name, col1, rowY)
+        .text(productName, col1, rowY)
         .text(price, col2, rowY)
         .text(qty, col3, rowY)
         .text(total, col4, rowY);
@@ -133,38 +147,34 @@ export const generateInvoicePDF = async (order) => {
 
     doc.y = rowY + 30;
 
-    // ---------------- TOTAL BOX ----------------
-    const cgst = subtotal * 0.02;
-    const sgst = subtotal * 0.02;
-    const grandTotal = subtotal + cgst + sgst;
+    // ---------------- TOTAL BOX (NO GST) ----------------
+    const totalY = doc.y;
+    const grandTotal = subtotal;
 
-    let totalBoxY = doc.y;
-    doc.roundedRect(300, totalBoxY, 260, 120, 12).fill("#F0F5FF").stroke("#D6E4FF");
+    doc.roundedRect(300, totalY, 260, 70, 10).fill("#F8F9FF");
 
-    doc.fillColor("#333")
+    doc.fillColor("#111")
       .fontSize(12)
-      .text(`Subtotal: Rs ${subtotal.toFixed(2)}`, 320, totalBoxY + 15)
-      .text(`CGST (2%): Rs ${cgst.toFixed(2)}`, 320, totalBoxY + 35)
-      .text(`SGST (2%): Rs ${sgst.toFixed(2)}`, 320, totalBoxY + 55);
+      .text(`Subtotal: Rs ${subtotal.toFixed(2)}`, 320, totalY + 15);
 
     doc.fontSize(14)
       .fillColor("#000")
-      .text(`Grand Total: Rs ${grandTotal.toFixed(2)}`, 320, totalBoxY + 85);
+      .text(`Grand Total: RS ${grandTotal.toFixed(2)}`, 320, totalY + 40);
 
     // ---------------- FOOTER ----------------
-    doc.moveDown(6);
-    doc.fontSize(10).fillColor("#888")
-      .text("Thank you for shopping with LABEL AADVI!", { align: "center" })
-      .text("For support, contact: labelaadvi@gmail.com", { align: "center" });
+    doc.moveDown(5);
 
-    // End PDF
+    doc.fontSize(10)
+      .fillColor("#666")
+      .text("Thank you for shopping with LABEL AADVI!", { align: "center" })
+      .text("For support contact: labelaadvi@gmail.com", { align: "center" });
+
     doc.end();
 
     return new Promise((resolve, reject) => {
       stream.on("finish", () => resolve(pdfPath));
       stream.on("error", reject);
     });
-
   } catch (err) {
     console.error("PDF Error:", err);
     throw err;
