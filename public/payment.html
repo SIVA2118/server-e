@@ -10,14 +10,13 @@
   <button id="payButton">Pay Now</button>
 
   <script>
-    // Replace with your real values
-    const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MmZlY2Y0ZTc0Nzk5ZjMyNGI4M2MxYyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY1MzQ0ODk2LCJleHAiOjE3NjU0MzEyOTZ9.pjCQpTFha8ixxuFAxj8ykOAPXCYruvk12x7H7uSIV7M";      // JWT from login
-    const ORDER_ID = "6926b084cf5d065b7af4208b";  // Order _id from DB
+    const JWT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MmZlY2Y0ZTc0Nzk5ZjMyNGI4M2MxYyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzY1MzU0MjM0LCJleHAiOjE3NjU0NDA2MzR9.64sbqgTzx6UmeRRyCmjPr6kvC8OAWvgZDAi6cSz0aww";      
+    const ORDER_ID = "69392b39f0619e820f95e183";
 
     document.getElementById("payButton").onclick = async function () {
       try {
-        // 1️⃣ Create order via backend
-        const res = await fetch("http://localhost:7000/api/payments/create", {
+        // 1️⃣ Create payment from backend
+        const res = await fetch("https://server-e-fx6s.onrender.com/api/payments/create", {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
@@ -25,10 +24,7 @@
           },
           body: JSON.stringify({ orderId: ORDER_ID })
         });
-        
-        
-        
-        
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -36,22 +32,18 @@
           return;
         }
 
-        // 2️⃣ Open Razorpay checkout
+        // 2️⃣ Razorpay Checkout
         const options = {
-          key: "rzp_live_RkHoyrDIxMYgwt", // Razorpay Key ID
-          amount: data.payment.amount * 100, // in paise
+          key: "rzp_test_RNjlc0vHMbznn4",    // ✔ TEST KEY (matches backend)
+          amount: data.payment.amount * 100,
           currency: "INR",
           name: "Your Store",
           description: "Test Payment",
           order_id: data.razorpayOrder.id,
-          handler: async function(response) {
-              console.log("Razorpay Payment ID:", response.razorpay_payment_id);
-            console.log("Razorpay Order ID:", response.razorpay_order_id);
-            console.log("Razorpay Signature:", response.razorpay_signature);
-            // 3️⃣ Verify payment
-            const verifyRes = await fetch("http://localhost:7000/api/payments/verify", {
+          handler: async function (response) {
+            const verifyRes = await fetch("https://server-e-fx6s.onrender.com/api/payments/verify", {
               method: "POST",
-              headers: { 
+              headers: {
                 "Content-Type": "application/json",
                 "token": JWT_TOKEN
               },
@@ -61,16 +53,13 @@
                 razorpay_signature: response.razorpay_signature
               })
             });
-            
-            
-            
-            
+
             const verifyData = await verifyRes.json();
-            alert("Payment Verification Result:\n" + JSON.stringify(verifyData, null, 2));
+            alert("Payment Verified:\n" + JSON.stringify(verifyData, null, 2));
           },
           prefill: { 
-            name: "Customer Name", 
-            email: "customer@example.com" 
+            name: "Customer Name",
+            email: "customer@example.com"
           },
           theme: { color: "#3399cc" }
         };
@@ -79,7 +68,6 @@
         rzp.open();
 
       } catch (err) {
-        console.error(err);
         alert("Something went wrong: " + err.message);
       }
     };
