@@ -5,11 +5,6 @@ import crypto from "crypto";
 import { confirmOrderPayment, refundOrderPayment } from "./Order.js";
 
 // ✅ Create Razorpay Payment (linked to Order)
-
-
-
-
-// ✅ Create Razorpay Payment (linked to Order)
 export const createPayment = async (req, res) => {
   try {
     const { orderId, method = "UPI" } = req.body;
@@ -123,7 +118,6 @@ export const refundPayment = async (req, res) => {
   }
 };
 
-// ✅ Razorpay Webhook
 // ✅ Razorpay Webhook
 export const razorpayWebhook = async (req, res) => {
   try {
