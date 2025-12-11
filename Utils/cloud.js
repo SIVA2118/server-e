@@ -19,7 +19,6 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "boutique/carousel", // Folder name in Cloudinary
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
-    transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });
 
@@ -27,6 +26,7 @@ export const upload = multer({
   storage,
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
 });
+
 
 
 
