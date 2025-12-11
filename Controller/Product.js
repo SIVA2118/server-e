@@ -118,28 +118,15 @@ export const getProductById = async (req, res) => {
 export const uploadProductImage = async (req, res) => {
   try {
     const { productId } = req.body;
-
-    if (!req.file)
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
     const product = await Product.findById(productId);
-    if (!product)
-      return res.status(404).json({ message: "Product not found" });
+    if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Save image data
-    product.images.push({
-      url: req.file.path,
-      public_id: req.file.filename,
-    });
-
+    product.images.push({ url: req.file.path, public_id: req.file.filename });
     await product.save();
 
-    res.json({
-      success: true,
-      message: "Image uploaded successfully",
-      data: product,
-    });
-
+    res.json({ success: true, message: "Image uploaded successfully", data: product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
