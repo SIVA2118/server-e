@@ -13,7 +13,53 @@ const variantSchema = new mongoose.Schema({
   },
   size: {
     type: [String],
-    enum: ["XS", "S", "M", "L", "XL", "XXL"],
+    size: {
+  type: String,
+  enum: [
+    // Universal / Free
+    "ALL",
+    "FREE",
+    "ONE_SIZE",
+
+    // Alpha Sizes
+    "XXS",
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "5XL",
+    // Numeric Sizes (Common Apparel)
+    "28",
+    "30",
+    "32",
+    "34",
+    "36",
+    "38",
+    "40",
+    "42",
+    "44",
+
+    // Shoe Sizes (Optional – India/UK)
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+
+    // Kids Sizes
+    "KIDS",
+    "BABY"
+  ],
+  required: true
+}
+,
     default: ["S", "M", "L","XL"], // ✅ Default size options
     validate: {
       validator: (arr) => Array.isArray(arr) && arr.length > 0,
