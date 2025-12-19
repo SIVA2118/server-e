@@ -6,10 +6,43 @@ import mongoose from "mongoose";
 // Helper function to get cart items + totalAmount
 const getCartData = async (userId) => {
   const items = await CartItem.find({ user: userId })
-    .populate("product", "name images")
+    .populate("product", "name images variants")
     .populate("variant", "color size price sku");
-  const totalAmount = items.reduce((acc, item) => acc + item.subtotal, 0);
-  return { items, totalAmount };
+  
+  // Extract selectedColor and selectedSize from variant for each item
+  const enrichedItems = items.map(item => {
+    const itemObj = item.toObject();
+    
+    // If variant is populated and has color/size, extract them
+    if (itemObj.variant) {
+      const variantData = itemObj.variant;
+      itemObj.selectedColor = Array.isArray(variantData.color) 
+        ? variantData.color[0] 
+        : variantData.color;
+      itemObj.selectedSize = Array.isArray(variantData.size)
+        ? variantData.size[0]
+        : variantData.size;
+    } else if (itemObj.product && itemObj.product.variants) {
+      // Fallback: find variant in product.variants if variant not populated
+      const matchingVariant = itemObj.product.variants.find(
+        v => v._id.toString() === item.variant.toString()
+      );
+      if (matchingVariant) {
+        itemObj.selectedColor = Array.isArray(matchingVariant.color)
+          ? matchingVariant.color[0]
+          : matchingVariant.color;
+        itemObj.selectedSize = Array.isArray(matchingVariant.size)
+          ? matchingVariant.size[0]
+          : matchingVariant.size;
+      }
+    }
+    
+    return itemObj;
+  });
+
+
+   const totalAmount = enrichedItems.reduce((acc, item) => acc + item.subtotal, 0);
+  return { items: enrichedItems, totalAmount };
 };
 
 // Add item to cart
