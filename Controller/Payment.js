@@ -74,13 +74,12 @@ export const verifyRazorpayPayment = async (req, res) => {
       });
     }
 
-    // ✅ Generate signature
+    // ✅ Generate and verify signature
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    // ❌ Signature mismatch
     if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({
         success: false,
@@ -88,7 +87,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       });
     }
 
-    // ✅ Update payment status
+    // ✅ Update payment status in DB
     const payment = await Payment.findOneAndUpdate(
       { razorpayOrderId: razorpay_order_id },
       {
@@ -106,7 +105,7 @@ export const verifyRazorpayPayment = async (req, res) => {
       });
     }
 
-    // ✅ Confirm order + email
+    // ✅ Confirm order (status update + email)
     if (payment.order) {
       await confirmOrderPayment(payment.order._id);
     }
