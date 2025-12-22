@@ -60,37 +60,69 @@ export const createPayment = async (req, res) => {
 // ✅ Verify Razorpay Payment
 export const verifyRazorpayPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
 
-    // Verify signature
+    // 🔴 Validate input
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required payment details",
+      });
+    }
+
+    // ✅ Generate signature
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    if (generatedSignature !== razorpay_signature)
-      return res.status(400).json({ message: "Invalid payment signature" });
+    // ❌ Signature mismatch
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment signature",
+      });
+    }
 
-    // Update Payment status
+    // ✅ Update payment status
     const payment = await Payment.findOneAndUpdate(
       { razorpayOrderId: razorpay_order_id },
-      { status: "paid", razorpayPaymentId: razorpay_payment_id },
+      {
+        status: "paid",
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+      },
       { new: true }
     ).populate("order");
 
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
-
-    // ✅ Confirm order payment and send email
-    if (payment.order) {
-      const confirmationResult = await confirmOrderPayment(payment.order._id);
-      if (!confirmationResult.success) {
-        return res.status(500).json({ message: confirmationResult.message });
-      }
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found",
+      });
     }
 
-    res.json({ message: "Payment verified and order confirmed", payment });
+    // ✅ Confirm order + email
+    if (payment.order) {
+      await confirmOrderPayment(payment.order._id);
+    }
+
+    // ✅ Final response
+    res.status(200).json({
+      success: true,
+      message: "Payment verified and order confirmed",
+      payment,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
