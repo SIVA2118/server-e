@@ -1,17 +1,41 @@
-import OrderItem from "../Models/OrderItem.js";
+import OrderItem from "../Models/Orderitem.js";
 
-// Create
+// Create Order Item
 export const createOrderItem = async (req, res) => {
   try {
-    const { order, product, quantity, price } = req.body;
-    if (!order || !product || !quantity || !price) return res.status(400).json({ message: "Missing required fields" });
+    const { order, product, quantity, price, color, size } = req.body;
 
-    const newOrderItem = await OrderItem.create({ order, product, quantity, price });
-    res.status(201).json({ success: true, data: newOrderItem });
+    // Validation
+    if (!order || !product || !quantity || !price) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    const newOrderItem = await OrderItem.create({
+      order,
+      product,
+      quantity,
+      price,
+      color, // ✅ save color
+      size,  // ✅ save size
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Order item created successfully",
+      data: newOrderItem,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
+
 
 // Get All
 export const getAllOrderItems = async (req, res) => {
