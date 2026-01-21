@@ -18,7 +18,7 @@ export const sendEmail = async (to, subject, text, html = null, attachmentPath =
     console.log("✅ SMTP connection verified");
 
     const mailOptions = {
-      from: `"Boutique App" <${process.env.SMTP_USER}>`,
+      from: `"LabelAadvi" <${process.env.SMTP_USER}>`,
       to,
       subject,
       text,

@@ -14,7 +14,9 @@ export const createOffer = async (req, res) => {
 // ✅ Get all offers
 export const getAllOffers = async (req, res) => {
   try {
-    const offers = await Offer.find();
+    const offers = await Offer.find()
+      .populate("category", "name")
+      .populate("product", "name");
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -24,7 +26,9 @@ export const getAllOffers = async (req, res) => {
 // ✅ Get offer by ID
 export const getOfferById = async (req, res) => {
   try {
-    const offer = await Offer.findById(req.params.id);
+    const offer = await Offer.findById(req.params.id)
+      .populate("category", "name")
+      .populate("product", "name");
     if (!offer) return res.status(404).json({ message: "Offer not found" });
     res.json(offer);
   } catch (error) {
@@ -40,7 +44,13 @@ export const updateOffer = async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
+
     if (!updatedOffer) return res.status(404).json({ message: "Offer not found" });
+
+    // Populate after update to return full details
+    await updatedOffer.populate("category", "name");
+    await updatedOffer.populate("product", "name");
+
     res.json({ message: "Offer updated successfully", updatedOffer });
   } catch (error) {
     res.status(500).json({ message: error.message });

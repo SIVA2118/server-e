@@ -83,7 +83,14 @@ export const getOrderById = async (req, res) => {
         return res.status(403).json({ message: "Access denied" });
     }
 
-    res.json({ success: true, order });
+
+    // 🔒 Hide trackingId for non-admins
+    const orderObj = order.toObject();
+    if (req.user.role !== "admin" && req.user.role !== "super admin") {
+      delete orderObj.trackingId;
+    }
+
+    res.json({ success: true, order: orderObj });
   } catch (error) {
     console.error("Get Order By ID Error:", error.message);
     res.status(500).json({ message: error.message });
@@ -101,11 +108,11 @@ export const updateOrder = async (req, res) => {
         runValidators: true
       }
     )
-    .populate("user")
-    .populate("address")
-    .populate({ path: "orderItems", populate: { path: "product" } })
-    .populate("offer")
-    .populate("payment");
+      .populate("user")
+      .populate("address")
+      .populate({ path: "orderItems", populate: { path: "product" } })
+      .populate("offer")
+      .populate("payment");
 
     if (!updatedOrder)
       return res.status(404).json({ message: "Order not found" });
@@ -198,6 +205,15 @@ export const getAllOrders = async (req, res) => {
     }
 
     const total = await Order.countDocuments(query);
+
+    // 🔒 Hide trackingId for non-admins
+    if (req.user.role !== "admin" && req.user.role !== "super admin") {
+      orders = orders.map(order => {
+        const orderObj = order.toObject();
+        delete orderObj.trackingId;
+        return orderObj;
+      });
+    }
 
     res.json({
       success: true,
@@ -295,7 +311,7 @@ export const confirmOrderPayment = async (orderId) => {
 // 🚚 Manually Update Shipment Details
 export const updateShipment = async (req, res) => {
   try {
-    const { status, trackingNumber, courierName, expectedDelivery } = req.body;
+    const { status, trackingId, courierName, expectedDelivery } = req.body;
 
     // Validate
     if (!req.params.id)
@@ -324,6 +340,7 @@ export const updateShipment = async (req, res) => {
     }
 
     if (courierName) order.courierName = courierName;
+    if (trackingId) order.trackingId = trackingId; // 📝 Save tracking ID
     if (expectedDelivery) order.expectedDelivery = expectedDelivery;
 
     await order.save();
