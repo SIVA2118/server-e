@@ -7,7 +7,7 @@ import { confirmOrderPayment, refundOrderPayment } from "./Order.js";
 // ✅ Create Razorpay Payment (linked to Order)
 export const createPayment = async (req, res) => {
   try {
-    const { orderId, method = "UPI" } = req.body;
+    const { orderId, method = "UPI", amount: providedAmount } = req.body;
 
     // 1️⃣ Fetch the order
     const order = await Order.findById(orderId).populate("payment");
@@ -24,25 +24,28 @@ export const createPayment = async (req, res) => {
       await Payment.findByIdAndDelete(order.payment._id);
     }
 
-    // 4️⃣ Create Razorpay order
+    // 4️⃣ Use provided amount (with coupon discount) or order total_amount
+    const finalAmount = providedAmount !== undefined ? providedAmount : order.total_amount;
+
+    // 5️⃣ Create Razorpay order with discounted amount
     const razorpayOrder = await razorpayInstance.orders.create({
-      amount: order.total_amount * 100, // amount in paise
+      amount: Math.round(finalAmount * 100), // amount in paise
       currency: "INR",
       receipt: `order_rcpt_${order._id}`,
       payment_capture: 1,
     });
 
-    // 5️⃣ Save new payment in DB
+    // 6️⃣ Save new payment in DB
     const payment = await Payment.create({
       order: order._id,
-      amount: order.total_amount,
+      amount: finalAmount,
       currency: "INR",
       method,
       status: "created",
       razorpayOrderId: razorpayOrder.id,
     });
 
-    // 6️⃣ Link payment to order
+    // 7️⃣ Link payment to order
     order.payment = payment._id;
     await order.save();
 
