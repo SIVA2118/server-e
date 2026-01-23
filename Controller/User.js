@@ -102,7 +102,7 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    const resetUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.BASE_URL}/#/reset-password/${resetToken}`;
     const message = `Click here to reset your password: ${resetUrl}`;
 
     const htmlMessage = `
@@ -413,3 +413,4 @@ export const deleteProfileImage = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
