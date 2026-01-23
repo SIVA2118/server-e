@@ -23,7 +23,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/forgot-password", forgotPassword);
-router.post("/#/reset-password/:token", resetPassword);
+router.post("/reset-password/:token", resetPassword);
 
 // ---------- Admin Routes ----------
 router.get("/all", Auth, authorizeRoles("admin", "super admin"), getAllUsers);
@@ -40,3 +40,4 @@ router.get("/profile-image/:id", getProfileImage); // get image URL by userId
 router.delete("/delete-profile-image", Auth, deleteProfileImage); // delete profile image
 
 export default router;
+
