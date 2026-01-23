@@ -67,3 +67,27 @@ export const deleteOffer = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ✅ Validate Offer
+export const validateOffer = async (req, res) => {
+  try {
+    const { couponcode } = req.body;
+    if (!couponcode) return res.status(400).json({ message: "Coupon code is required" });
+
+    const offer = await Offer.findOne({ couponcode });
+
+    if (!offer) return res.status(404).json({ message: "Invalid coupon code" });
+
+    if (new Date() > new Date(offer.expiry_date)) {
+      return res.status(400).json({ message: "Coupon has expired" });
+    }
+
+    if (offer.usage_limit <= 0) {
+      return res.status(400).json({ message: "Coupon usage limit exceeded" });
+    }
+
+    res.json({ success: true, message: "Coupon is valid", offer });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
