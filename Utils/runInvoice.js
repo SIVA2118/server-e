@@ -9,14 +9,14 @@ const order = {
     { product: { name: "Product 1" }, price: 100, quantity: 2 },
     { product: { name: "Product 2" }, price: 50, quantity: 3 },
   ],
+  total_amount: 300,
 };
 
 const fileName = `Invoice_${order.user.firstName}_${order._id}.pdf`;
 
 const run = async () => {
-  const { buffer, path } = await generateInvoicePDF(order, fileName);
-  fs.writeFileSync(path, buffer);
-  console.log("Invoice saved at:", path);
+  const generatedPath = await generateInvoicePDF(order);
+  console.log("Invoice saved at:", generatedPath);
 };
 
 run();
