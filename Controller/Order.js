@@ -1,6 +1,7 @@
 import Order from "../Models/Order.js";
 import OrderItem from "../Models/Orderitem.js";
 import Payment from "../Models/Payment.js";
+import Offer from "../Models/Offer.js";
 import mongoose from "mongoose";
 import { sendEmail } from "../Utils/sendemail.js";
 import { generateInvoicePDF } from "../Utils/generateInvoice.js";
@@ -10,7 +11,7 @@ import fs from "fs";
 // ✅ Create Order using existing OrderItem IDs
 export const createOrder = async (req, res) => {
   try {
-    const { user, address, orderItems, total_amount, notes } = req.body;
+    const { user, address, orderItems, total_amount, notes, offer } = req.body;
 
     // Validate inputs
     if (!orderItems || orderItems.length === 0)
@@ -18,6 +19,24 @@ export const createOrder = async (req, res) => {
 
     if (!user || !address)
       return res.status(400).json({ message: "User and address are required" });
+
+    // ✅ CHECK OFFER VALIDITY & LIMIT
+    if (offer) {
+      const offerDoc = await Offer.findById(offer);
+      if (!offerDoc) return res.status(404).json({ message: "Offer not found" });
+
+      if (offerDoc.usage_limit <= 0) {
+        return res.status(400).json({ message: "Coupon usage limit exceeded" });
+      }
+
+      if (new Date() > new Date(offerDoc.expiry_date)) {
+        return res.status(400).json({ message: "Coupon has expired" });
+      }
+
+      // Decrement usage limit
+      offerDoc.usage_limit -= 1;
+      await offerDoc.save();
+    }
 
     // ✅ Ensure all orderItem IDs exist in the DB
     const existingItems = await OrderItem.find({
@@ -34,7 +53,8 @@ export const createOrder = async (req, res) => {
       address,
       orderItems,
       total_amount,
-      notes
+      notes,
+      offer // Save offer reference
     });
 
     // ✅ Populate full order details
