@@ -149,17 +149,30 @@ export const generateInvoicePDF = async (order) => {
 
     // ---------------- TOTAL BOX (NO GST) ----------------
     const totalY = doc.y;
-    const grandTotal = subtotal;
+    const finalTotal = order.total_amount !== undefined ? Number(order.total_amount) : subtotal;
+    const discount = subtotal - finalTotal;
 
-    doc.roundedRect(300, totalY, 260, 70, 10).fill("#F8F9FF");
+    const hasDiscount = discount > 0.01; // Avoid floating point epsilon issues
+    const totalBoxHeight = hasDiscount ? 95 : 70;
+
+    doc.roundedRect(300, totalY, 260, totalBoxHeight, 10).fill("#F8F9FF");
 
     doc.fillColor("#111")
       .fontSize(12)
       .text(`Subtotal: Rs ${subtotal.toFixed(2)}`, 320, totalY + 15);
 
-    doc.fontSize(14)
-      .fillColor("#000")
-      .text(`Grand Total: RS ${grandTotal.toFixed(2)}`, 320, totalY + 40);
+    if (hasDiscount) {
+      doc.fillColor("red")
+        .text(`Discount: - Rs ${discount.toFixed(2)}`, 320, totalY + 35);
+
+      doc.fontSize(14)
+        .fillColor("#000")
+        .text(`Grand Total: RS ${finalTotal.toFixed(2)}`, 320, totalY + 60);
+    } else {
+      doc.fontSize(14)
+        .fillColor("#000")
+        .text(`Grand Total: RS ${finalTotal.toFixed(2)}`, 320, totalY + 40);
+    }
 
     // ---------------- FOOTER ----------------
     doc.moveDown(5);
