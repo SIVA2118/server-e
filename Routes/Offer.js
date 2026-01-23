@@ -4,7 +4,8 @@ import {
   getAllOffers,
   getOfferById,
   updateOffer,
-  deleteOffer
+  deleteOffer,
+  validateOffer
 } from "../Controller/Offer.js";
 
 import { Auth, authorizeRoles } from "../Middleware/Auth.js";
@@ -12,6 +13,7 @@ import { Auth, authorizeRoles } from "../Middleware/Auth.js";
 const router = express.Router();
 
 router.post("/create", Auth, authorizeRoles("admin", "super admin"), createOffer);       // Create Offer
+router.post("/validate", validateOffer); // ✅ Validate Offer
 router.get("/all", getAllOffers);       // Get all Offers
 router.get("/Id/:id", getOfferById);    // Get one Offer
 router.put("/update/:id", Auth, authorizeRoles("admin", "super admin"), updateOffer);     // Update Offer
