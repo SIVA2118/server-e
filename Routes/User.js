@@ -40,4 +40,3 @@ router.get("/profile-image/:id", getProfileImage); // get image URL by userId
 router.delete("/delete-profile-image", Auth, deleteProfileImage); // delete profile image
 
 export default router;
-

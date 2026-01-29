@@ -1,7 +1,7 @@
 import express from "express";
 import {
   addItem,
-  updateQuantity,
+  updateCartItem,
   removeItem,
   getCart,
   getUserCart,
@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/add", Auth, addItem);
 
 // Update quantity
-router.put("/update", Auth, updateQuantity);
+router.put("/update", Auth, updateCartItem);
 
 // Remove item
 router.delete("/remove/:itemId", Auth, removeItem);

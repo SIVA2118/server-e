@@ -8,16 +8,16 @@ const getCartData = async (userId) => {
   const items = await CartItem.find({ user: userId })
     .populate("product", "name images variants")
     .populate("variant", "color size price sku");
-  
+
   // Extract selectedColor and selectedSize from variant for each item
   const enrichedItems = items.map(item => {
     const itemObj = item.toObject();
-    
+
     // If variant is populated and has color/size, extract them
     if (itemObj.variant) {
       const variantData = itemObj.variant;
-      itemObj.selectedColor = Array.isArray(variantData.color) 
-        ? variantData.color[0] 
+      itemObj.selectedColor = Array.isArray(variantData.color)
+        ? variantData.color[0]
         : variantData.color;
       itemObj.selectedSize = Array.isArray(variantData.size)
         ? variantData.size[0]
@@ -36,12 +36,12 @@ const getCartData = async (userId) => {
           : matchingVariant.size;
       }
     }
-    
+
     return itemObj;
   });
 
 
-   const totalAmount = enrichedItems.reduce((acc, item) => acc + item.subtotal, 0);
+  const totalAmount = enrichedItems.reduce((acc, item) => acc + item.subtotal, 0);
   return { items: enrichedItems, totalAmount };
 };
 
@@ -91,7 +91,8 @@ export const addItem = async (req, res) => {
 };
 
 // Update quantity
-export const updateQuantity = async (req, res) => {
+// Update cart item
+export const updateCartItem = async (req, res) => {
   try {
     const { itemId, quantity } = req.body;
     const userId = req.user.id;
@@ -103,8 +104,8 @@ export const updateQuantity = async (req, res) => {
     cartItem.subtotal = quantity * cartItem.price;
 
     await cartItem.save();
-    const cartData = await getCartData(userId);
-    res.status(200).json({ success: true, cart: cartData });
+
+    res.status(200).json({ success: true, cartItem });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Server Error" });
